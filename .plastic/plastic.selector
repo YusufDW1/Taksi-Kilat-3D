@@ -1,0 +1,10 @@
+<<<<<<< HEAD
+repository "Taksi Kilat 3D/Taksi Kilat 3D@1375016029173@cloud"
+  path "/"
+    br "/main"
+    co "/main"
+=======
+repository "Taksi Kilat 3D/Taksi Kilat 3D@1375016029173@cloud"
+  path "/"
+    smartbranch "/main"
+>>>>>>> fd908f1a3e652c8187809e8ec853bbaac37d071f
