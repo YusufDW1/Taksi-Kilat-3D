@@ -4,11 +4,7 @@
 UnityConnectSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 1
-<<<<<<< HEAD
-  m_Enabled: 1
-=======
   m_Enabled: 0
->>>>>>> fd908f1a3e652c8187809e8ec853bbaac37d071f
   m_TestMode: 0
   m_EventOldUrl: https://api.uca.cloud.unity3d.com/v1/events
   m_EventUrl: https://cdp.cloud.unity3d.com/v1/events
@@ -16,7 +12,7 @@ UnityConnectSettings:
   m_DashboardUrl: https://dashboard.unity3d.com
   m_TestInitMode: 0
   InsightsSettings:
-    m_EngineDiagnosticsEnabled: 1
+    m_EngineDiagnosticsEnabled: 0
     m_Enabled: 0
   CrashReportingSettings:
     serializedVersion: 2

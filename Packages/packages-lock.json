@@ -1,14 +1,11 @@
 {
   "dependencies": {
-<<<<<<< HEAD
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {}
     },
-=======
->>>>>>> fd908f1a3e652c8187809e8ec853bbaac37d071f
     "com.unity.ai.navigation": {
       "version": "2.0.11",
       "depth": 0,
@@ -191,11 +188,7 @@
       }
     },
     "com.unity.test-framework.performance": {
-<<<<<<< HEAD
-      "version": "3.3.0",
-=======
       "version": "3.2.0",
->>>>>>> fd908f1a3e652c8187809e8ec853bbaac37d071f
       "depth": 3,
       "source": "registry",
       "dependencies": {

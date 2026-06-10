@@ -3,7 +3,6 @@ using UnityEngine.SceneManagement; // Wajib dipanggil untuk berpindah-pindah lev
 
 public class MenuManager : MonoBehaviour
 {
-<<<<<<< HEAD
     [Header("UI Panels (Tarik Objek Panel dari Hierarchy ke Sini)")]
     public GameObject panelSetting;
     public GameObject panelCredit;
@@ -70,20 +69,5 @@ public class MenuManager : MonoBehaviour
     {
         Debug.Log("Keluar dari Game.");
         Application.Quit(); // Hanya berfungsi setelah game di-build/jadi file .exe atau .apk
-=======
-    // Fungsi ini akan dipanggil saat Tombol Play diklik
-    public void MulaiGame()
-    {
-        Debug.Log("Memuat Level 1...");
-        // Pastikan nama di dalam tanda kutip PERSIS dengan nama file scene Level 1 kamu
-        SceneManager.LoadScene("Level_1"); 
-    }
-
-    // Fungsi ini akan dipanggil saat Tombol Quit diklik
-    public void KeluarGame()
-    {
-        Debug.Log("Keluar dari Game.");
-        Application.Quit(); // Catatan: Ini hanya akan berfungsi jika game sudah di-build (di-export)
->>>>>>> fd908f1a3e652c8187809e8ec853bbaac37d071f
     }
 }
