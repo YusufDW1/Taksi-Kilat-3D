@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro; 
 using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,9 +14,8 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI timerText; 
     public TextMeshProUGUI targetText; 
 
-    // -------- BAGIAN BARU UNTUK STRUK --------
     [Header("Referensi UI Struk (Baru)")]
-    public GameObject panelStruk; // Objek panel induk
+    public GameObject panelStruk; 
     public TextMeshProUGUI tarifDasarText;
     public TextMeshProUGUI bonusWaktuText;
     public TextMeshProUGUI totalPendapatanText;
@@ -23,7 +23,15 @@ public class GameManager : MonoBehaviour
     [Header("Pengaturan Uang (Baru)")]
     public int hargaPerPenumpang = 15000;
     public int bonusPerDetik = 500;
-    // -----------------------------------------
+
+    // -------- BAGIAN BARU UNTUK AUDIO / SFX --------
+    [Header("Pengaturan Audio / SFX")]
+    public AudioMixer masterMixer;           // Untuk memuat volume saat pindah level
+    public AudioSource sfxPlayer;            // Speaker khusus untuk memutar efek suara
+    public AudioClip sfxPenumpangNaik;       // Suara saat penumpang masuk (jemput)
+    public AudioClip sfxPenumpangTurun;      // Suara saat penumpang sampai / dapat koin (antar)
+    public AudioClip sfxKertasStruk;         // Suara cash register/struk saat level selesai
+    // -----------------------------------------------
 
     private bool gameAktif = true;
 
@@ -34,6 +42,19 @@ public class GameManager : MonoBehaviour
         if (panelStruk != null) panelStruk.SetActive(false); 
         
         UpdateUITarget(); 
+
+        // Memuat setting volume yang disimpan dari Main Menu
+        if (masterMixer != null)
+        {
+            float savedMusik = PlayerPrefs.GetFloat("MusikVolume", 1f);
+            float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 1f);
+            
+            float bgmDb = Mathf.Log10(Mathf.Clamp(savedMusik, 0.0001f, 1f)) * 20;
+            float sfxDb = Mathf.Log10(Mathf.Clamp(savedSFX, 0.0001f, 1f)) * 20;
+            
+            masterMixer.SetFloat("BGMVol", bgmDb);
+            masterMixer.SetFloat("SFXVol", sfxDb);
+        }
     }
 
     private void Update()
@@ -61,6 +82,16 @@ public class GameManager : MonoBehaviour
         targetText.text = "Penumpang: " + penumpangSekarang + " / " + targetPenumpang;
     }
 
+    // Dipanggil dari TaxiMission saat penumpang masuk ke taksi (Jemput)
+    public void PenumpangNaik()
+    {
+        if (sfxPlayer != null && sfxPenumpangNaik != null)
+        {
+            sfxPlayer.PlayOneShot(sfxPenumpangNaik);
+        }
+    }
+
+    // Dipanggil dari TaxiMission saat penumpang diturunkan di tujuan (Antar)
     public void TambahPenumpang()
     {
         if (!gameAktif) return; // Cegah error kalau game sudah selesai
@@ -68,10 +99,33 @@ public class GameManager : MonoBehaviour
         penumpangSekarang++;
         UpdateUITarget();
 
+        // Putar suara antar/koin. Jika kosong, gunakan suara naik sebagai fallback agar tetap bersuara.
+        if (sfxPlayer != null)
+        {
+            if (sfxPenumpangTurun != null)
+            {
+                sfxPlayer.PlayOneShot(sfxPenumpangTurun);
+            }
+            else if (sfxPenumpangNaik != null)
+            {
+                sfxPlayer.PlayOneShot(sfxPenumpangNaik);
+            }
+        }
+
         if (penumpangSekarang >= targetPenumpang)
         {
-            LevelComplete();
+            // Hentikan update timer segera agar adil
+            gameAktif = false;
+            // Jalankan jeda sebelum memunculkan struk kemenangan
+            StartCoroutine(TungguSebelumLevelSelesai());
         }
+    }
+
+    private System.Collections.IEnumerator TungguSebelumLevelSelesai()
+    {
+        // Tunggu 1.2 detik agar SFX penumpang naik (koin) selesai diputar
+        yield return new WaitForSeconds(1.2f);
+        LevelComplete();
     }
 
     private void GameOver()
@@ -82,7 +136,6 @@ public class GameManager : MonoBehaviour
         Debug.Log("WAKTU HABIS! Game Over.");
     }
 
-    // FUNGSI INI DI-UPGRADE DENGAN KALKULASI MATEMATIKA
     private void LevelComplete()
     {
         gameAktif = false;
@@ -93,25 +146,28 @@ public class GameManager : MonoBehaviour
         int totalBonus = sisaDetik * bonusPerDetik;
         int grandTotal = totalTarifDasar + totalBonus;
 
-        // 2. Masukkan hasil ke UI ("N0" digunakan untuk memberi format ribuan, misal 45000 jadi 45.000)
+        // 2. Masukkan hasil ke UI 
         tarifDasarText.text = "Tarif (" + targetPenumpang + "x) : Rp " + totalTarifDasar.ToString("N0");
         bonusWaktuText.text = "Bonus Waktu (" + sisaDetik + "s) : Rp " + totalBonus.ToString("N0");
         totalPendapatanText.text = "TOTAL PENDAPATAN : Rp " + grandTotal.ToString("N0");
 
+        // Putar efek suara struk/mesin kasir sebelum game di-pause
+        if (sfxPlayer != null && sfxKertasStruk != null)
+        {
+            sfxPlayer.PlayOneShot(sfxKertasStruk);
+        }
+
         // 3. Munculkan Kertas Struk & Hentikan Waktu (Pause)
         if (panelStruk != null) panelStruk.SetActive(true);
-        Time.timeScale = 0f; // Pause game agar mobil berhenti saat struk muncul
+        Time.timeScale = 0f; 
     }
-    // Fungsi ini dipanggil saat pemain menekan tombol LANJUT di layar Struk
+
     public void LanjutLevelBerikutnya()
     {
-        // Wajib! Kembalikan waktu berjalan normal (1) karena sebelumnya kita pause (0) di layar struk
         Time.timeScale = 1f; 
 
-        // Membaca urutan (index) level yang sedang dimainkan, lalu ditambah 1
         int levelBerikutnya = SceneManager.GetActiveScene().buildIndex + 1;
 
-        // Cek apakah level berikutnya ada di daftar Build Profiles?
         if (levelBerikutnya < SceneManager.sceneCountInBuildSettings)
         {
             Debug.Log("Memuat Level Berikutnya...");
@@ -119,18 +175,14 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // Jika sudah tamat (tidak ada level lagi), kembalikan ke Main Menu (Index 0)
             Debug.Log("Game Tamat! Kembali ke Menu Utama.");
             SceneManager.LoadScene(0);
         }
     }
-    // Fungsi untuk kembali ke Main Menu (Bisa dipasang di tombol mana saja)
+
     public void KembaliKeMainMenu()
     {
-        // Pastikan waktu berjalan normal
         Time.timeScale = 1f; 
-        
-        // Pindah ke MainMenu (Index 0 di Build Profiles)
         Debug.Log("Kembali ke Menu Utama...");
         SceneManager.LoadScene(0); 
     }

@@ -1,73 +1,119 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Wajib dipanggil untuk berpindah-pindah level/scene
+using UnityEngine.SceneManagement; 
+using UnityEngine.Audio; 
+using UnityEngine.UI;    
 
 public class MenuManager : MonoBehaviour
 {
-    [Header("UI Panels (Tarik Objek Panel dari Hierarchy ke Sini)")]
+    [Header("UI Panels")]
     public GameObject panelSetting;
     public GameObject panelCredit;
 
-    // ==========================================
-    // 1. TOMBOL START / MULAI SHIFT
-    // ==========================================
-    public void MulaiGame()
+    [Header("Audio Control")]
+    public AudioMixer masterMixer; 
+    public Slider sliderMusik; 
+    public Slider sliderSFX;   
+
+    [Header("UI Audio FX")]
+    public AudioSource uiAudioSource; 
+    public AudioClip clickSound;      
+
+    private void Start()
     {
-        // Pastikan waktu berjalan normal (takutnya beku akibat fungsi pause di game over/complete)
-        Time.timeScale = 1f; 
-        
-        Debug.Log("Memuat Level 1...");
-        // Memuat Level 1 menggunakan Index 1 agar lebih aman dari salah ketik nama
-        SceneManager.LoadScene(1); 
+        // SAAT LEVEL DIMULAI: Load nilai volume yang tersimpan, jika belum ada set ke default (1f)
+        float savedMusik = PlayerPrefs.GetFloat("MusikVolume", 1f);
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 1f);
+
+        // Terapkan ke Mixer
+        SetVolumeMixer("BGMVol", savedMusik);
+        SetVolumeMixer("SFXVol", savedSFX);
+
+        // Sinkronkan posisi Slider di UI (jika objek slidernya ada di Scene ini)
+        if (sliderMusik != null)
+        {
+            sliderMusik.value = savedMusik;
+            sliderMusik.onValueChanged.AddListener(SetVolumeMusik);
+        }
+
+        if (sliderSFX != null)
+        {
+            sliderSFX.value = savedSFX;
+            sliderSFX.onValueChanged.AddListener(SetVolumeSFX);
+        }
+    }
+
+    // Fungsi khusus mengontrol & MENYIMPAN volume Musik
+    public void SetVolumeMusik(float sliderValue)
+    {
+        SetVolumeMixer("BGMVol", sliderValue);
+        PlayerPrefs.SetFloat("MusikVolume", sliderValue); // Simpan ke memori
+        PlayerPrefs.Save();
+    }
+
+    // Fungsi khusus mengontrol & MENYIMPAN volume SFX
+    public void SetVolumeSFX(float sliderValue)
+    {
+        SetVolumeMixer("SFXVol", sliderValue);
+        PlayerPrefs.SetFloat("SFXVolume", sliderValue); // Simpan ke memori
+        PlayerPrefs.Save();
+    }
+
+    // Fungsi pembantu untuk konversi nilai slider ke Desibel Mixer
+    private void SetVolumeMixer(string parameterName, float sliderValue)
+    {
+        if (masterMixer != null)
+        {
+            float dbValue = Mathf.Log10(Mathf.Clamp(sliderValue, 0.0001f, 1f)) * 20;
+            masterMixer.SetFloat(parameterName, dbValue);
+        }
+    }
+
+    public void PlayClickSound()
+    {
+        if (uiAudioSource != null && clickSound != null)
+        {
+            uiAudioSource.PlayOneShot(clickSound);
+        }
     }
 
     // ==========================================
-    // 2. TOMBOL SETTING (Buka & Tutup)
+    // FUNGSI NAVIGASI TOMBOL
     // ==========================================
+    public void MulaiGame()
+    {
+        PlayClickSound(); // Bunyikan suara klik sebelum pindah scene
+        Time.timeScale = 1f; 
+        SceneManager.LoadScene(1); 
+    }
+
     public void BukaSetting()
     {
-        if (panelSetting != null)
-        {
-            panelSetting.SetActive(true); // Memunculkan panel Setting
-            Debug.Log("Panel Setting Dibuka.");
-        }
+        PlayClickSound();
+        if (panelSetting != null) panelSetting.SetActive(true);
     }
 
     public void TutupSetting()
     {
-        if (panelSetting != null)
-        {
-            panelSetting.SetActive(false); // Menyembunyikan panel Setting
-            Debug.Log("Panel Setting Ditutup.");
-        }
+        PlayClickSound();
+        if (panelSetting != null) panelSetting.SetActive(false);
     }
 
-    // ==========================================
-    // 3. TOMBOL CREDIT (Buka & Tutup)
-    // ==========================================
     public void BukaCredit()
     {
-        if (panelCredit != null)
-        {
-            panelCredit.SetActive(true); // Memunculkan panel Credit
-            Debug.Log("Panel Credit Dibuka.");
-        }
+        PlayClickSound();
+        if (panelCredit != null) panelCredit.SetActive(true);
     }
 
     public void TutupCredit()
     {
-        if (panelCredit != null)
-        {
-            panelCredit.SetActive(false); // Menyembunyikan panel Credit
-            Debug.Log("Panel Credit Ditutup.");
-        }
+        PlayClickSound();
+        if (panelCredit != null) panelCredit.SetActive(false);
     }
 
-    // ==========================================
-    // 4. TOMBOL EXIT / KELUAR
-    // ==========================================
     public void KeluarGame()
     {
+        PlayClickSound();
         Debug.Log("Keluar dari Game.");
-        Application.Quit(); // Hanya berfungsi setelah game di-build/jadi file .exe atau .apk
+        Application.Quit(); 
     }
 }
