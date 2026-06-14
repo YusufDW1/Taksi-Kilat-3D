@@ -20,6 +20,10 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI bonusWaktuText;
     public TextMeshProUGUI totalPendapatanText;
 
+    [Header("Referensi UI Pause (Sesuai Hirarki)")]
+    [Tooltip("Tarik objek 'Panel_Pause' dari Hierarchy ke sini")]
+    public GameObject panelPause;
+
     [Header("Pengaturan Uang (Baru)")]
     public int hargaPerPenumpang = 15000;
     public int bonusPerDetik = 500;
@@ -31,6 +35,12 @@ public class GameManager : MonoBehaviour
     public AudioClip sfxPenumpangNaik;       // Suara saat penumpang masuk (jemput)
     public AudioClip sfxPenumpangTurun;      // Suara saat penumpang sampai / dapat koin (antar)
     public AudioClip sfxKertasStruk;         // Suara cash register/struk saat level selesai
+
+    [Header("Sistem SFX Tombol Pause (Baru)")]
+    [Tooltip("Masukkan komponen AudioSource yang ada di objek _GameManager")]
+    public AudioSource sfxAudioSource; 
+    [Tooltip("Masukkan AudioClip suara klik/click sound dari folder Assets")]
+    public AudioClip clickSoundClip;
     // -----------------------------------------------
 
     private bool gameAktif = true;
@@ -180,10 +190,73 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Fungsi pembantu untuk memutar suara klik
+    private void PutarSuaraKlik()
+    {
+        if (sfxAudioSource != null && clickSoundClip != null)
+        {
+            // Menggunakan PlayOneShot agar suara tidak terpotong jika tombol diklik cepat
+            sfxAudioSource.PlayOneShot(clickSoundClip);
+        }
+    }
+
+    // 4. Dipasang pada objek: Menu_btn
     public void KembaliKeMainMenu()
     {
-        Time.timeScale = 1f; 
-        Debug.Log("Kembali ke Menu Utama...");
-        SceneManager.LoadScene(0); 
+        PutarSuaraKlik(); // <-- Pemicu suara klik tombol main menu
+        Time.timeScale = 1f; // PENTING: Wajib dinormalkan agar scene MainMenu tidak ikut membeku/macet!
+        SceneManager.LoadScene("MainMenu"); // Sesuaikan dengan nama Scene Menu Utamamu
+    }
+
+    // 1. Dipasang pada objek: Tombol_Pause_HUD
+    public void PauseGame()
+    {
+        // Hanya bisa pause jika level masih berjalan (belum tamat / gagal)
+        if (!gameAktif) return; 
+
+        PutarSuaraKlik(); // <-- Pemicu suara klik saat tombol pause HUD ditekan
+
+        if (panelPause != null)
+        {
+            panelPause.SetActive(true); // Membuka Panel_Pause (background, overlay, & tombol otomatis muncul)
+            Time.timeScale = 0f;        // Menghentikan waktu game total
+        }
+    }
+
+    // 2. Dipasang pada objek: Resume_btn
+    public void ResumeGame()
+    {
+        // PENTING: Karena Time.timeScale akan diset ke 0 (game beku), 
+        // AudioSource biasa tidak akan mau berbunyi KECUALI kita set ia agar mengabaikan waktu game.
+        if (sfxAudioSource != null) sfxAudioSource.ignoreListenerPause = true;
+
+        PutarSuaraKlik(); // <-- Pemicu suara klik tombol resume
+
+        if (panelPause != null)
+        {
+            panelPause.SetActive(false); // Menyembunyikan kembali Panel_Pause
+            Time.timeScale = 1f;         // Mengembalikan waktu game menjadi normal
+        }
+    }
+
+    // 3. Dipasang pada objek: Setting_btn
+    // Parameter ini digunakan agar kamu bisa menarik objek Panel_Setting level kamu langsung lewat Button Event
+    public void BukaSettingInGame(GameObject panelSetting)
+    {
+        PutarSuaraKlik(); // <-- Pemicu suara klik tombol setting
+        if (panelSetting != null) 
+        {
+            panelSetting.SetActive(true);
+        }
+    }
+
+    // Fungsi untuk menutup panel Setting dari dalam Game (Dipasang di Tombol CLOSE/BACK di Panel Setting)
+    public void TutupSettingInGame(GameObject panelSetting)
+    {
+        PutarSuaraKlik(); // <-- Pemicu suara klik tombol tutup setting
+        if (panelSetting != null) 
+        {
+            panelSetting.SetActive(false);
+        }
     }
 }
