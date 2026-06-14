@@ -14,6 +14,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI timerText; 
     public TextMeshProUGUI targetText; 
 
+    [Header("Referensi HUD")]
+    public GameObject tombolPauseHUD; // Tarik objek Tombol_Pause_HUD ke sini via Inspector 
+
     [Header("Referensi UI Struk (Baru)")]
     public GameObject panelStruk; 
     public TextMeshProUGUI tarifDasarText;
@@ -50,6 +53,7 @@ public class GameManager : MonoBehaviour
         // Pastikan game tidak di-pause dan panel struk hilang saat mulai
         Time.timeScale = 1f; 
         if (panelStruk != null) panelStruk.SetActive(false); 
+        if (tombolPauseHUD != null) tombolPauseHUD.SetActive(true); // Pastikan tombol pause aktif saat mulai
         
         UpdateUITarget(); 
 
@@ -126,6 +130,10 @@ public class GameManager : MonoBehaviour
         {
             // Hentikan update timer segera agar adil
             gameAktif = false;
+
+            // Sembunyikan tombol pause HUD agar tidak bocor ke panel struk
+            if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false);
+
             // Jalankan jeda sebelum memunculkan struk kemenangan
             StartCoroutine(TungguSebelumLevelSelesai());
         }
@@ -143,6 +151,7 @@ public class GameManager : MonoBehaviour
         gameAktif = false;
         waktuBermain = 0; 
         UpdateUITimer();
+        if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false); // Sembunyikan tombol pause jika kalah
         Debug.Log("WAKTU HABIS! Game Over.");
     }
 
@@ -166,6 +175,9 @@ public class GameManager : MonoBehaviour
         {
             sfxPlayer.PlayOneShot(sfxKertasStruk);
         }
+
+        // Sembunyikan tombol pause agar tidak menumpuk dengan panel struk
+        if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false);
 
         // 3. Munculkan Kertas Struk & Hentikan Waktu (Pause)
         if (panelStruk != null) panelStruk.SetActive(true);
