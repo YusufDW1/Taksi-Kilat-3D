@@ -22,12 +22,13 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI tarifDasarText;
     public TextMeshProUGUI bonusWaktuText;
     public TextMeshProUGUI totalPendapatanText;
+    public TextMeshProUGUI textHighScore;
 
     [Header("Referensi UI Pause")]
     [Tooltip("Tarik objek 'Panel_Pause' dari Hierarchy ke sini")]
     public GameObject panelPause;
 
-    [Header("Referensi UI Game Over (Baru)")]
+    [Header("Referensi UI Game Over")]
     public GameObject panelGameOver; // Tarik objek Panel_GameOver ke sini via Inspector
 
     [Header("Pengaturan Uang (Baru)")]
@@ -183,6 +184,9 @@ public class GameManager : MonoBehaviour
         bonusWaktuText.text = "Bonus Waktu (" + sisaDetik + "s) : Rp " + totalBonus.ToString("N0");
         totalPendapatanText.text = "TOTAL PENDAPATAN : Rp " + grandTotal.ToString("N0");
 
+        // Hitung dan Simpan High Score (Baru)
+        HitungDanSimpanHighScore(grandTotal);
+
         // Putar efek suara struk/mesin kasir sebelum game di-pause
         if (sfxPlayer != null && sfxKertasStruk != null)
         {
@@ -292,6 +296,37 @@ public class GameManager : MonoBehaviour
         if (panelSetting != null) 
         {
             panelSetting.SetActive(false);
+        }
+    }
+
+    // Panggil fungsi ini di dalam fungsi tempat kamu mengkalkulasi total pendapatan (saat level selesai)
+    public void HitungDanSimpanHighScore(float totalDuitShiftIni)
+    {
+        // 1. Ambil nama scene/level aktif saat ini secara dinamis (Lvl 1, 2, atau 3)
+        // Ini biar key PlayerPrefs-nya unik tiap level (contoh: "HighScore_Level1")
+        string keyLevel = "HighScore_" + SceneManager.GetActiveScene().name;
+
+        // 2. Ambil rekor lama dari memori lokal (kalau belum ada, otomatis diset 0)
+        float rekorLama = PlayerPrefs.GetFloat(keyLevel, 0f);
+
+        // 3. Cek apakah pendapatan shift ini berhasil melewati rekor lama
+        if (totalDuitShiftIni > rekorLama)
+        {
+            rekorLama = totalDuitShiftIni; // Update variabel rekorLama ke angka baru
+            PlayerPrefs.SetFloat(keyLevel, totalDuitShiftIni); // Simpan permanen ke memori lokal
+            PlayerPrefs.Save(); // Amankan data
+        }
+
+        // 4. Tampilkan angkanya ke TextMeshPro UI dengan format mata uang Rp
+        if (textHighScore != null)
+        {
+            textHighScore.text = "REKOR TERBAIK : Rp " + rekorLama.ToString("N0");
+            
+            // Opsional: Kalau pecah rekor baru, teksnya bisa kamu beri warna hijau/emas biar dramatis!
+            if (totalDuitShiftIni >= rekorLama && totalDuitShiftIni > 0)
+            {
+                textHighScore.text += " <color=yellow>(REKOR BARU!)</color>";
+            }
         }
     }
 }
