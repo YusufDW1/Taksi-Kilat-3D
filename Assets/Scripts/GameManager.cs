@@ -17,15 +17,18 @@ public class GameManager : MonoBehaviour
     [Header("Referensi HUD")]
     public GameObject tombolPauseHUD; // Tarik objek Tombol_Pause_HUD ke sini via Inspector 
 
-    [Header("Referensi UI Struk (Baru)")]
+    [Header("Referensi UI Struk")]
     public GameObject panelStruk; 
     public TextMeshProUGUI tarifDasarText;
     public TextMeshProUGUI bonusWaktuText;
     public TextMeshProUGUI totalPendapatanText;
 
-    [Header("Referensi UI Pause (Sesuai Hirarki)")]
+    [Header("Referensi UI Pause")]
     [Tooltip("Tarik objek 'Panel_Pause' dari Hierarchy ke sini")]
     public GameObject panelPause;
+
+    [Header("Referensi UI Game Over (Baru)")]
+    public GameObject panelGameOver; // Tarik objek Panel_GameOver ke sini via Inspector
 
     [Header("Pengaturan Uang (Baru)")]
     public int hargaPerPenumpang = 15000;
@@ -39,7 +42,7 @@ public class GameManager : MonoBehaviour
     public AudioClip sfxPenumpangTurun;      // Suara saat penumpang sampai / dapat koin (antar)
     public AudioClip sfxKertasStruk;         // Suara cash register/struk saat level selesai
 
-    [Header("Sistem SFX Tombol Pause (Baru)")]
+    [Header("Sistem SFX Tombol Pause")]
     [Tooltip("Masukkan komponen AudioSource yang ada di objek _GameManager")]
     public AudioSource sfxAudioSource; 
     [Tooltip("Masukkan AudioClip suara klik/click sound dari folder Assets")]
@@ -50,9 +53,10 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Pastikan game tidak di-pause dan panel struk hilang saat mulai
+        // Pastikan game tidak di-pause dan panel struk/GameOver hilang saat mulai
         Time.timeScale = 1f; 
         if (panelStruk != null) panelStruk.SetActive(false); 
+        if (panelGameOver != null) panelGameOver.SetActive(false); 
         if (tombolPauseHUD != null) tombolPauseHUD.SetActive(true); // Pastikan tombol pause aktif saat mulai
         
         UpdateUITarget(); 
@@ -80,7 +84,7 @@ public class GameManager : MonoBehaviour
 
         if (waktuBermain <= 0)
         {
-            GameOver();
+            PemicuGameOver();
         }
     }
 
@@ -146,13 +150,22 @@ public class GameManager : MonoBehaviour
         LevelComplete();
     }
 
-    private void GameOver()
+    // Fungsi yang dipanggil otomatis dari script Timer kamu saat waktu mencapai 0
+    public void PemicuGameOver()
     {
+        if (!gameAktif) return; // Jika sudah menang/pause, jangan pemicu game over lagi
+
         gameAktif = false;
-        waktuBermain = 0; 
-        UpdateUITimer();
-        if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false); // Sembunyikan tombol pause jika kalah
-        Debug.Log("WAKTU HABIS! Game Over.");
+        Time.timeScale = 0f; // Hentikan pergerakan taksi dan dunia game
+
+        // Sembunyikan tombol pause HUD agar layar bersih
+        if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false);
+
+        // Munculkan panel Game Over
+        if (panelGameOver != null)
+        {
+            panelGameOver.SetActive(true);
+        }
     }
 
     private void LevelComplete()
@@ -200,6 +213,16 @@ public class GameManager : MonoBehaviour
             Debug.Log("Game Tamat! Kembali ke Menu Utama.");
             SceneManager.LoadScene(0);
         }
+    }
+
+    // Fungsi untuk mengulang level yang sama (Dipasang di Tombol REPLAY)
+    public void ReplayLevel()
+    {
+        Time.timeScale = 1f; // PENTING: Kembalikan waktu ke normal sebelum reload!
+        
+        // Mengambil nama scene yang sedang aktif saat ini lalu memuatnya ulang
+        string sceneSekarang = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(sceneSekarang);
     }
 
     // Fungsi pembantu untuk memutar suara klik
