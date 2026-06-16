@@ -69,6 +69,14 @@ public class TaxiMission : MonoBehaviour
         {
             // TAHAP 1: Penumpang Naik
             Debug.Log("Penumpang NAIK! Segera antar ke tujuan.");
+            
+            // Panggil GameManager untuk memutar SFX penumpang naik
+            GameManager gm = FindObjectOfType<GameManager>();
+            if (gm != null)
+            {
+                gm.PenumpangNaik();
+            }
+
             SetModeAntar();
         }
         else
