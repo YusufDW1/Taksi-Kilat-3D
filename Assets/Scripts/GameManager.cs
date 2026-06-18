@@ -31,7 +31,10 @@ public class GameManager : MonoBehaviour
     [Header("Referensi UI Game Over")]
     public GameObject panelGameOver; // Tarik objek Panel_GameOver ke sini via Inspector
 
-    [Header("Pengaturan Uang (Baru)")]
+    [Header("Referensi UI Tutorial ")]
+    public GameObject panelTutorial; // Tarik objek Panel_Tutorial ke sini via Inspector
+
+    [Header("Pengaturan Uang")]
     public int hargaPerPenumpang = 15000;
     public int bonusPerDetik = 500;
 
@@ -54,8 +57,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Pastikan game tidak di-pause dan panel struk/GameOver hilang saat mulai
-        Time.timeScale = 1f; 
+        // Pastikan panel struk/GameOver hilang saat mulai
         if (panelStruk != null) panelStruk.SetActive(false); 
         if (panelGameOver != null) panelGameOver.SetActive(false); 
         if (tombolPauseHUD != null) tombolPauseHUD.SetActive(true); // Pastikan tombol pause aktif saat mulai
@@ -73,6 +75,31 @@ public class GameManager : MonoBehaviour
             
             masterMixer.SetFloat("BGMVol", bgmDb);
             masterMixer.SetFloat("SFXVol", sfxDb);
+        }
+
+        // Cek apakah ini Level 1 (asumsi nama scene kamu adalah "Level_1")
+        // Ini biar tutorial gak muncul lagi di Level 2 atau Level 3
+        Debug.Log("GameManager Start - Scene Aktif: '" + SceneManager.GetActiveScene().name + "'");
+        if (panelTutorial == null)
+        {
+            Debug.LogWarning("Peringatan: panelTutorial bernilai NULL! Pastikan Anda sudah menarik objek Panel_Tutorial ke slot panelTutorial di Inspector GameManager pada Scene Level_1.");
+        }
+
+        if (SceneManager.GetActiveScene().name == "Level_1")
+        {
+            gameAktif = false;
+            Time.timeScale = 0f; // Bekukan waktu game (taksi & timer tidak jalan)
+            
+            if (panelTutorial != null)
+            {
+                panelTutorial.SetActive(true); // Munculkan kertas tutorial
+                Debug.Log("GameManager - Berhasil mengaktifkan panelTutorial!");
+            }
+        }
+        else
+        {
+            // Jika bukan Level 1 (misal Level 2), langsung mulai game
+            MulaiPermainanLangsung();
         }
     }
 
@@ -327,6 +354,29 @@ public class GameManager : MonoBehaviour
             {
                 textHighScore.text += " <color=yellow>(REKOR BARU!)</color>";
             }
+        }
+    }
+
+    // Fungsi tambahan untuk memulai game tanpa tutorial (untuk Lvl 2 & 3)
+    public void MulaiPermainanLangsung()
+    {
+        gameAktif = true;
+        Time.timeScale = 1f; // Jalankan waktu normal
+
+        // Matikan panel tutorial jika aktif (biar aman)
+        if (panelTutorial != null) panelTutorial.SetActive(false);
+    }
+
+    // Fungsi yang dipasang di TOMBOL MENGERTI!
+    public void TutupTutorialDanMulaiGame()
+    {
+        gameAktif = true;
+        Time.timeScale = 1f; // Jalankan waktu normal (game dimulai!)
+
+        // Sembunyikan panel tutorial
+        if (panelTutorial != null)
+        {
+            panelTutorial.SetActive(false);
         }
     }
 }
