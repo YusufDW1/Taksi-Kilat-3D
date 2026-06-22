@@ -94,6 +94,28 @@ public class TaxiController : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale == 0f)
+        {
+            // Jika game sedang beku/pause, senyapkan/pause audio mobil
+            if (mesinAudioSource != null && mesinAudioSource.isPlaying)
+            {
+                mesinAudioSource.Pause();
+            }
+            if (sfxDecitBan != null && sfxDecitBan.isPlaying)
+            {
+                sfxDecitBan.Pause();
+            }
+            return;
+        }
+        else
+        {
+            // Jika game berjalan kembali, mainkan lagi jika sebelumnya di-pause
+            if (mesinAudioSource != null && !mesinAudioSource.isPlaying)
+            {
+                mesinAudioSource.UnPause();
+            }
+        }
+
         GetInput();
         HandleEngineSound(); // Jalankan kontrol suara mesin setiap frame
         HandleDriftSound();  // Jalankan kontrol cek decit ban setiap frame

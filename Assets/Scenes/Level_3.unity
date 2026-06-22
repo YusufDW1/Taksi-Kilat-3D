@@ -336,6 +336,7 @@ MonoBehaviour:
   panelPause: {fileID: 1702058259778879490}
   panelGameOver: {fileID: 3298499446912202244}
   panelTutorial: {fileID: 0}
+  mobileButton: {fileID: 2306190702464875503}
   hargaPerPenumpang: 15000
   bonusPerDetik: 75
   masterMixer: {fileID: 24100000, guid: d280b1869a0987042bd79f89fe95e814, type: 2}
@@ -343,8 +344,10 @@ MonoBehaviour:
   sfxPenumpangNaik: {fileID: 8300000, guid: aff6ac3f49a8a7941942a5c661657ab2, type: 3}
   sfxPenumpangTurun: {fileID: 8300000, guid: 5b0521724058c4348b5ef199ecd3b60d, type: 3}
   sfxKertasStruk: {fileID: 8300000, guid: 5da021228f47f40419fbec9a2c396525, type: 3}
+  sfxGameOver: {fileID: 8300000, guid: ccf20c1322c1bbc46846594a6e251692, type: 3}
   sfxAudioSource: {fileID: 76581694}
   clickSoundClip: {fileID: 8300000, guid: f2ac0370de644864398231b0424937aa, type: 3}
+  bgmAudioSource: {fileID: 4217299464062522618}
 --- !u!4 &76581693
 Transform:
   m_ObjectHideFlags: 0

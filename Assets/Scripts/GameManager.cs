@@ -34,6 +34,10 @@ public class GameManager : MonoBehaviour
     [Header("Referensi UI Tutorial ")]
     public GameObject panelTutorial; // Tarik objek Panel_Tutorial ke sini via Inspector
 
+    [Header("Referensi UI Mobile")]
+    [Tooltip("Tarik objek Panel_TouchControl ke sini")]
+    public GameObject mobileButton;
+
     [Header("Pengaturan Uang")]
     public int hargaPerPenumpang = 15000;
     public int bonusPerDetik = 500;
@@ -45,15 +49,19 @@ public class GameManager : MonoBehaviour
     public AudioClip sfxPenumpangNaik;       // Suara saat penumpang masuk (jemput)
     public AudioClip sfxPenumpangTurun;      // Suara saat penumpang sampai / dapat koin (antar)
     public AudioClip sfxKertasStruk;         // Suara cash register/struk saat level selesai
+    public AudioClip sfxGameOver;            // Suara ketika game over (Baru)
 
     [Header("Sistem SFX Tombol Pause")]
     [Tooltip("Masukkan komponen AudioSource yang ada di objek _GameManager")]
     public AudioSource sfxAudioSource; 
     [Tooltip("Masukkan AudioClip suara klik/click sound dari folder Assets")]
     public AudioClip clickSoundClip;
+    [Tooltip("Tarik AudioSource BGM ke sini jika ingin mematikan musik secara langsung")]
+    public AudioSource bgmAudioSource;
     // -----------------------------------------------
 
     private bool gameAktif = true;
+    private static bool tutorialSelesai = false;
 
     private void Start()
     {
@@ -61,8 +69,10 @@ public class GameManager : MonoBehaviour
         if (panelStruk != null) panelStruk.SetActive(false); 
         if (panelGameOver != null) panelGameOver.SetActive(false); 
         if (tombolPauseHUD != null) tombolPauseHUD.SetActive(true); // Pastikan tombol pause aktif saat mulai
+        if (mobileButton != null) mobileButton.SetActive(true); // Pastikan tombol android aktif saat mulai
         
         UpdateUITarget(); 
+        UpdateUITimer(); // Tampilkan timer awal di UI (agar membeku di awal)
 
         // Memuat setting volume yang disimpan dari Main Menu
         if (masterMixer != null)
@@ -79,13 +89,7 @@ public class GameManager : MonoBehaviour
 
         // Cek apakah ini Level 1 (asumsi nama scene kamu adalah "Level_1")
         // Ini biar tutorial gak muncul lagi di Level 2 atau Level 3
-        Debug.Log("GameManager Start - Scene Aktif: '" + SceneManager.GetActiveScene().name + "'");
-        if (panelTutorial == null)
-        {
-            Debug.LogWarning("Peringatan: panelTutorial bernilai NULL! Pastikan Anda sudah menarik objek Panel_Tutorial ke slot panelTutorial di Inspector GameManager pada Scene Level_1.");
-        }
-
-        if (SceneManager.GetActiveScene().name == "Level_1")
+        if (SceneManager.GetActiveScene().name == "Level_1" && !tutorialSelesai)
         {
             gameAktif = false;
             Time.timeScale = 0f; // Bekukan waktu game (taksi & timer tidak jalan)
@@ -93,12 +97,17 @@ public class GameManager : MonoBehaviour
             if (panelTutorial != null)
             {
                 panelTutorial.SetActive(true); // Munculkan kertas tutorial
-                Debug.Log("GameManager - Berhasil mengaktifkan panelTutorial!");
             }
+
+            // Sembunyikan tombol pause HUD selama tutorial berlangsung
+            if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false);
+
+            // Sembunyikan tombol android selama tutorial berlangsung
+            if (mobileButton != null) mobileButton.SetActive(false);
         }
         else
         {
-            // Jika bukan Level 1 (misal Level 2), langsung mulai game
+            // Jika bukan Level 1 (misal Level 2), atau tutorial sudah diselesaikan sebelumnya, langsung mulai game
             MulaiPermainanLangsung();
         }
     }
@@ -166,6 +175,9 @@ public class GameManager : MonoBehaviour
             // Sembunyikan tombol pause HUD agar tidak bocor ke panel struk
             if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false);
 
+            // Sembunyikan tombol android agar tidak bocor ke panel struk
+            if (mobileButton != null) mobileButton.SetActive(false);
+
             // Jalankan jeda sebelum memunculkan struk kemenangan
             StartCoroutine(TungguSebelumLevelSelesai());
         }
@@ -188,6 +200,26 @@ public class GameManager : MonoBehaviour
 
         // Sembunyikan tombol pause HUD agar layar bersih
         if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false);
+
+        // Sembunyikan tombol android agar layar bersih
+        if (mobileButton != null) mobileButton.SetActive(false);
+
+        // Matikan musik BGM secara langsung jika ada
+        if (bgmAudioSource != null)
+        {
+            bgmAudioSource.Stop();
+        }
+        else if (masterMixer != null)
+        {
+            // Fallback: Senyapkan BGM melalui Mixer
+            masterMixer.SetFloat("BGMVol", -80f);
+        }
+
+        // Putar suara game over
+        if (sfxPlayer != null && sfxGameOver != null)
+        {
+            sfxPlayer.PlayOneShot(sfxGameOver);
+        }
 
         // Munculkan panel Game Over
         if (panelGameOver != null)
@@ -223,6 +255,9 @@ public class GameManager : MonoBehaviour
         // Sembunyikan tombol pause agar tidak menumpuk dengan panel struk
         if (tombolPauseHUD != null) tombolPauseHUD.SetActive(false);
 
+        // Sembunyikan tombol android agar tidak menumpuk dengan panel struk
+        if (mobileButton != null) mobileButton.SetActive(false);
+
         // 3. Munculkan Kertas Struk & Hentikan Waktu (Pause)
         if (panelStruk != null) panelStruk.SetActive(true);
         Time.timeScale = 0f; 
@@ -242,6 +277,7 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.Log("Game Tamat! Kembali ke Menu Utama.");
+            tutorialSelesai = false; // Reset tutorial
             SceneManager.LoadScene(0);
         }
     }
@@ -271,6 +307,7 @@ public class GameManager : MonoBehaviour
     {
         PutarSuaraKlik(); // <-- Pemicu suara klik tombol main menu
         Time.timeScale = 1f; // PENTING: Wajib dinormalkan agar scene MainMenu tidak ikut membeku/macet!
+        tutorialSelesai = false; // Reset tutorial agar muncul lagi jika masuk dari Main Menu
         SceneManager.LoadScene("MainMenu"); // Sesuaikan dengan nama Scene Menu Utamamu
     }
 
@@ -287,6 +324,9 @@ public class GameManager : MonoBehaviour
             panelPause.SetActive(true); // Membuka Panel_Pause (background, overlay, & tombol otomatis muncul)
             Time.timeScale = 0f;        // Menghentikan waktu game total
         }
+
+        // Sembunyikan tombol android saat di-pause
+        if (mobileButton != null) mobileButton.SetActive(false);
     }
 
     // 2. Dipasang pada objek: Resume_btn
@@ -303,6 +343,9 @@ public class GameManager : MonoBehaviour
             panelPause.SetActive(false); // Menyembunyikan kembali Panel_Pause
             Time.timeScale = 1f;         // Mengembalikan waktu game menjadi normal
         }
+
+        // Tampilkan kembali tombol android setelah resume
+        if (mobileButton != null) mobileButton.SetActive(true);
     }
 
     // 3. Dipasang pada objek: Setting_btn
@@ -365,6 +408,12 @@ public class GameManager : MonoBehaviour
 
         // Matikan panel tutorial jika aktif (biar aman)
         if (panelTutorial != null) panelTutorial.SetActive(false);
+
+        // Pastikan tombol pause HUD aktif
+        if (tombolPauseHUD != null) tombolPauseHUD.SetActive(true);
+
+        // Pastikan tombol android aktif
+        if (mobileButton != null) mobileButton.SetActive(true);
     }
 
     // Fungsi yang dipasang di TOMBOL MENGERTI!
@@ -372,11 +421,18 @@ public class GameManager : MonoBehaviour
     {
         gameAktif = true;
         Time.timeScale = 1f; // Jalankan waktu normal (game dimulai!)
+        tutorialSelesai = true; // Tandai bahwa tutorial sudah diselesaikan
 
         // Sembunyikan panel tutorial
         if (panelTutorial != null)
         {
             panelTutorial.SetActive(false);
         }
+
+        // Tampilkan tombol pause HUD saat permainan dimulai
+        if (tombolPauseHUD != null) tombolPauseHUD.SetActive(true);
+
+        // Tampilkan tombol android saat permainan dimulai
+        if (mobileButton != null) mobileButton.SetActive(true);
     }
 }

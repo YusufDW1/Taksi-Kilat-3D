@@ -2187,7 +2187,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 169424285, guid: 255c28838caf4b74c88c133fda7897cb, type: 3}
+  m_Sprite: {fileID: 1996469881, guid: 255c28838caf4b74c88c133fda7897cb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4907,7 +4907,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14cc5c45d884fc74280a33cdfcdd58d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  waktuBermain: 300
+  waktuBermain: 240
   targetPenumpang: 1
   timerText: {fileID: 681529441917894743}
   targetText: {fileID: 4786697041154536979}
@@ -4920,6 +4920,7 @@ MonoBehaviour:
   panelPause: {fileID: 7921576783392585155}
   panelGameOver: {fileID: 4327793354942581031}
   panelTutorial: {fileID: 8186612755469961068}
+  mobileButton: {fileID: 5987480240144930324}
   hargaPerPenumpang: 15000
   bonusPerDetik: 75
   masterMixer: {fileID: 24100000, guid: d280b1869a0987042bd79f89fe95e814, type: 2}
@@ -4927,8 +4928,10 @@ MonoBehaviour:
   sfxPenumpangNaik: {fileID: 8300000, guid: aff6ac3f49a8a7941942a5c661657ab2, type: 3}
   sfxPenumpangTurun: {fileID: 8300000, guid: 5b0521724058c4348b5ef199ecd3b60d, type: 3}
   sfxKertasStruk: {fileID: 8300000, guid: 5da021228f47f40419fbec9a2c396525, type: 3}
+  sfxGameOver: {fileID: 8300000, guid: ccf20c1322c1bbc46846594a6e251692, type: 3}
   sfxAudioSource: {fileID: 4923023591373280896}
   clickSoundClip: {fileID: 8300000, guid: f2ac0370de644864398231b0424937aa, type: 3}
+  bgmAudioSource: {fileID: 8686755071745243851}
 --- !u!33 &4291727788259795912
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -7666,7 +7669,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &8225135697834340582
 GameObject:
   m_ObjectHideFlags: 0
