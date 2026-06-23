@@ -29,6 +29,13 @@ public class TaxiController : MonoBehaviour
     [Header("Downforce & Stabilitas")]
     public float downforceValue = 100f; // Gaya rekat ke jalan agar mobil tidak melayang saat kencang
 
+    [Header("Kontrol Mobile Android")]
+    public MobileButton tombolGas;
+    public MobileButton tombolMundur;
+    public MobileButton tombolKiri;
+    public MobileButton tombolKanan;
+    public MobileButton tombolRemTangan;
+
     // ---- BAGIAN BARU UNTUK AUDIO INTERNAL (MESIN) ----
     [Header("Pengaturan Audio Internal Mobil")]
     public AudioSource mesinAudioSource; // Tarik Audio Source Mesin dari Taksi ke Sini
@@ -87,6 +94,28 @@ public class TaxiController : MonoBehaviour
 
     private void Update()
     {
+        if (Time.timeScale == 0f)
+        {
+            // Jika game sedang beku/pause, senyapkan/pause audio mobil
+            if (mesinAudioSource != null && mesinAudioSource.isPlaying)
+            {
+                mesinAudioSource.Pause();
+            }
+            if (sfxDecitBan != null && sfxDecitBan.isPlaying)
+            {
+                sfxDecitBan.Pause();
+            }
+            return;
+        }
+        else
+        {
+            // Jika game berjalan kembali, mainkan lagi jika sebelumnya di-pause
+            if (mesinAudioSource != null && !mesinAudioSource.isPlaying)
+            {
+                mesinAudioSource.UnPause();
+            }
+        }
+
         GetInput();
         HandleEngineSound(); // Jalankan kontrol suara mesin setiap frame
         HandleDriftSound();  // Jalankan kontrol cek decit ban setiap frame
@@ -106,6 +135,30 @@ public class TaxiController : MonoBehaviour
         verticalInput = Input.GetAxis("Vertical"); 
         horizontalInput = Input.GetAxis("Horizontal"); 
         isBraking = Input.GetKey(KeyCode.Space); 
+
+        // Integrasi kontrol tombol Android (Keyboard PC tetap aktif)
+        if (tombolGas != null && tombolGas.isPressed)
+        {
+            verticalInput = 1f;
+        }
+        else if (tombolMundur != null && tombolMundur.isPressed)
+        {
+            verticalInput = -1f;
+        }
+
+        if (tombolKiri != null && tombolKiri.isPressed)
+        {
+            horizontalInput = -1f;
+        }
+        else if (tombolKanan != null && tombolKanan.isPressed)
+        {
+            horizontalInput = 1f;
+        }
+
+        if (tombolRemTangan != null && tombolRemTangan.isPressed)
+        {
+            isBraking = true;
+        }
     }
 
     // ==================================================
