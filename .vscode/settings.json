@@ -67,6 +67,6 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Taksi-Kilat-3D.slnx",
+    "dotnet.defaultSolution": "Taksi Kilat 3D.slnx",
     "dotnet.enableWorkspaceBasedDevelopment": false
 }
