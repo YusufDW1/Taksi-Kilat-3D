@@ -58,6 +58,10 @@ public class GameManager : MonoBehaviour
     public AudioClip clickSoundClip;
     [Tooltip("Tarik AudioSource BGM ke sini jika ingin mematikan musik secara langsung")]
     public AudioSource bgmAudioSource;
+    
+    [Header("In-Game Volume Sliders (Otomatis dicari jika kosong)")]
+    public UnityEngine.UI.Slider sliderMusik;
+    public UnityEngine.UI.Slider sliderSFX;
     // -----------------------------------------------
 
     private bool gameAktif = true;
@@ -75,16 +79,66 @@ public class GameManager : MonoBehaviour
         UpdateUITimer(); // Tampilkan timer awal di UI (agar membeku di awal)
 
         // Memuat setting volume yang disimpan dari Main Menu
+        float savedMusik = PlayerPrefs.GetFloat("MusikVolume", 1f);
+        float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 1f);
+
         if (masterMixer != null)
         {
-            float savedMusik = PlayerPrefs.GetFloat("MusikVolume", 1f);
-            float savedSFX = PlayerPrefs.GetFloat("SFXVolume", 1f);
-            
             float bgmDb = Mathf.Log10(Mathf.Clamp(savedMusik, 0.0001f, 1f)) * 20;
             float sfxDb = Mathf.Log10(Mathf.Clamp(savedSFX, 0.0001f, 1f)) * 20;
             
             masterMixer.SetFloat("BGMVol", bgmDb);
             masterMixer.SetFloat("SFXVol", sfxDb);
+        }
+
+        // Cari slider secara otomatis jika belum dipasang di Inspector
+        if (sliderMusik == null)
+        {
+            var go = GameObject.Find("Slider_Musik");
+            if (go != null) sliderMusik = go.GetComponent<UnityEngine.UI.Slider>();
+            else
+            {
+                var allSliders = Resources.FindObjectsOfTypeAll<UnityEngine.UI.Slider>();
+                foreach (var s in allSliders)
+                {
+                    if (s.name == "Slider_Musik" && s.gameObject.scene.name != null)
+                    {
+                        sliderMusik = s;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (sliderSFX == null)
+        {
+            var go = GameObject.Find("Slider_SFX");
+            if (go != null) sliderSFX = go.GetComponent<UnityEngine.UI.Slider>();
+            else
+            {
+                var allSliders = Resources.FindObjectsOfTypeAll<UnityEngine.UI.Slider>();
+                foreach (var s in allSliders)
+                {
+                    if (s.name == "Slider_SFX" && s.gameObject.scene.name != null)
+                    {
+                        sliderSFX = s;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Sinkronkan slider ke volume dan daftarkan listener
+        if (sliderMusik != null)
+        {
+            sliderMusik.value = savedMusik;
+            sliderMusik.onValueChanged.AddListener(SetVolumeMusik);
+        }
+
+        if (sliderSFX != null)
+        {
+            sliderSFX.value = savedSFX;
+            sliderSFX.onValueChanged.AddListener(SetVolumeSFX);
         }
 
         // Cek apakah ini Level 1 (asumsi nama scene kamu adalah "Level_1")
@@ -436,5 +490,31 @@ public class GameManager : MonoBehaviour
 
         // Tampilkan tombol android saat permainan dimulai
         if (mobileButton != null) mobileButton.SetActive(true);
+    }
+
+    // ==========================================
+    // SISTEM PENGATURAN AUDIO DI DALAM GAME
+    // ==========================================
+    public void SetVolumeMusik(float sliderValue)
+    {
+        SetVolumeMixer("BGMVol", sliderValue);
+        PlayerPrefs.SetFloat("MusikVolume", sliderValue);
+        PlayerPrefs.Save();
+    }
+
+    public void SetVolumeSFX(float sliderValue)
+    {
+        SetVolumeMixer("SFXVol", sliderValue);
+        PlayerPrefs.SetFloat("SFXVolume", sliderValue);
+        PlayerPrefs.Save();
+    }
+
+    private void SetVolumeMixer(string parameterName, float sliderValue)
+    {
+        if (masterMixer != null)
+        {
+            float dbValue = Mathf.Log10(Mathf.Clamp(sliderValue, 0.0001f, 1f)) * 20;
+            masterMixer.SetFloat(parameterName, dbValue);
+        }
     }
 }
