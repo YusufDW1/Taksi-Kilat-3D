@@ -231,7 +231,11 @@ public class GameManager : MonoBehaviour
     private void LevelComplete()
     {
         gameAktif = false;
-        
+
+        // Buka shift berikutnya (progresif): Level_1 selesai -> Shift 2 kebuka, dst
+        int levelIni = SceneManager.GetActiveScene().buildIndex; // Level_1=1, 2=2, 3=3
+        MenuManager.UnlockShiftBerikutnya(levelIni);
+
         // 1. Hitung-hitungan Uang
         int sisaDetik = Mathf.FloorToInt(waktuBermain);
         int totalTarifDasar = targetPenumpang * hargaPerPenumpang;
@@ -265,19 +269,17 @@ public class GameManager : MonoBehaviour
 
     public void LanjutLevelBerikutnya()
     {
-        Time.timeScale = 1f; 
-
-        int levelBerikutnya = SceneManager.GetActiveScene().buildIndex + 1;
-
-        if (levelBerikutnya < SceneManager.sceneCountInBuildSettings)
+        Time.timeScale = 1f;
+        int nextLevel = SceneManager.GetActiveScene().buildIndex + 1;
+        
+        // Jika belum melampaui Level 3, load level berikutnya
+        if (nextLevel <= 3)
         {
-            Debug.Log("Memuat Level Berikutnya...");
-            SceneManager.LoadScene(levelBerikutnya);
+            SceneManager.LoadScene(nextLevel);
         }
         else
         {
-            Debug.Log("Game Tamat! Kembali ke Menu Utama.");
-            tutorialSelesai = false; // Reset tutorial
+            // Jika sudah tamat (selesai Level 3), kembali ke MainMenu
             SceneManager.LoadScene(0);
         }
     }
