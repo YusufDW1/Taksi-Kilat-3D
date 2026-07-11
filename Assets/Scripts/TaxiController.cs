@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class TaxiController : MonoBehaviour
 {
@@ -132,9 +133,19 @@ public class TaxiController : MonoBehaviour
 
     private void GetInput()
     {
-        verticalInput = Input.GetAxis("Vertical"); 
-        horizontalInput = Input.GetAxis("Horizontal"); 
-        isBraking = Input.GetKey(KeyCode.Space); 
+        // Baca input keyboard via Input System (Input lama sudah dimatikan)
+        var kb = Keyboard.current;
+        if (kb != null)
+        {
+            float v = 0f, h = 0f;
+            if (kb.wKey.isPressed || kb.upArrowKey.isPressed) v += 1f;
+            if (kb.sKey.isPressed || kb.downArrowKey.isPressed) v -= 1f;
+            if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) h += 1f;
+            if (kb.aKey.isPressed || kb.leftArrowKey.isPressed) h -= 1f;
+            verticalInput = v;
+            horizontalInput = h;
+            isBraking = kb.spaceKey.isPressed;
+        }
 
         // Integrasi kontrol tombol Android (Keyboard PC tetap aktif)
         if (tombolGas != null && tombolGas.isPressed)

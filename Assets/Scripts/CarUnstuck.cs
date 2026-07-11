@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CarUnstuck : MonoBehaviour
 {
@@ -12,8 +13,9 @@ public class CarUnstuck : MonoBehaviour
 
     private void Update()
     {
-        // Mengecek apakah pemain menekan tombol 'R' di keyboard
-        if (Input.GetKeyDown(KeyCode.R))
+        // Mengecek apakah pemain menekan tombol 'R' di keyboard (Input System)
+        var keyboard = Keyboard.current;
+        if (keyboard != null && keyboard.rKey.wasPressedThisFrame)
         {
             ResetPosisiMobil();
         }
