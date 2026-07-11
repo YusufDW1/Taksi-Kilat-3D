@@ -19,8 +19,8 @@ public class TaxiController : MonoBehaviour
     public Transform centerOfMass; 
 
     [Header("Pengaturan Performa")]
-    public float motorForce = 2200f; // Default lama 1500f (Akselerasi lebih bertenaga)
-    public float reverseForce = 2000f; // Default baru khusus mundur agar lebih kencang
+    public float motorForce = 1600f; // Disesuaikan agar tidak terlalu liar/cepat (lama: 2200f)
+    public float reverseForce = 1300f; // Disesuaikan agar mundur pas (lama: 2000f)
     public float breakForce = 3000f;
     public float decelerationForce = 400f; 
     public float maxSteerAngle = 30f;
@@ -293,11 +293,12 @@ public class TaxiController : MonoBehaviour
             }
         }
 
-        // Terapkan torsi motor ke semua roda (AWD) agar akselerasi & mundur jauh lebih bertenaga & stabil
-        frontLeftCollider.motorTorque = motorTorqueToApply;
-        frontRightCollider.motorTorque = motorTorqueToApply;
-        rearLeftCollider.motorTorque = motorTorqueToApply;
-        rearRightCollider.motorTorque = motorTorqueToApply;
+        // Terapkan torsi motor terbagi rata ke semua roda (AWD 50/50 split) agar stabil & tidak terlalu liar
+        float halfTorque = motorTorqueToApply * 0.5f;
+        frontLeftCollider.motorTorque = halfTorque;
+        frontRightCollider.motorTorque = halfTorque;
+        rearLeftCollider.motorTorque = halfTorque;
+        rearRightCollider.motorTorque = halfTorque;
 
         // Terapkan rem yang disesuaikan
         ApplyBraking(frontBrake, rearBrake);
