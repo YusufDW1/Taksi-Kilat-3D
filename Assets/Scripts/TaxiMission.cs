@@ -20,6 +20,10 @@ public class TaxiMission : MonoBehaviour
     [Tooltip("Titik-titik tujuan (gedung, rumah, mall, dll)")]
     public Transform[] titikAntar;
 
+    [Header("Jarak Lokasi")]
+    [Tooltip("Jarak minimum antara lokasi baru dengan lokasi saat ini agar tidak berdekatan")]
+    public float jarakMinimum = 80f;
+
     private void Start()
     {
         // Mengambil komponen visual untuk ganti-ganti warna
@@ -119,10 +123,56 @@ public class TaxiMission : MonoBehaviour
 
     private void PindahLokasiAcak(Transform[] daftarTitik)
     {
-        if (daftarTitik.Length > 0)
+        if (daftarTitik.Length == 0) return;
+
+        Vector3 posisiSaatIni = transform.position;
+        System.Collections.Generic.List<Transform> titikValid = new System.Collections.Generic.List<Transform>();
+
+        // 1. Cari semua titik yang jaraknya lebih dari jarakMinimum
+        foreach (Transform titik in daftarTitik)
         {
-            int randomIndex = Random.Range(0, daftarTitik.Length);
-            transform.position = daftarTitik[randomIndex].position;
+            if (titik != null && Vector3.Distance(posisiSaatIni, titik.position) >= jarakMinimum)
+            {
+                titikValid.Add(titik);
+            }
+        }
+
+        // 2. Jika ada titik yang memenuhi syarat jarak minimum, pilih acak dari situ
+        if (titikValid.Count > 0)
+        {
+            int randomIndex = Random.Range(0, titikValid.Count);
+            transform.position = titikValid[randomIndex].position;
+        }
+        else
+        {
+            // 3. Jika tidak ada yang memenuhi (atau semua terlalu dekat), pilih titik yang PALING JAUH
+            Transform titikTerjauh = null;
+            float jarakTerjauh = -1f;
+
+            foreach (Transform titik in daftarTitik)
+            {
+                if (titik != null)
+                {
+                    float jarak = Vector3.Distance(posisiSaatIni, titik.position);
+                    if (jarak > jarakTerjauh)
+                    {
+                        jarakTerjauh = jarak;
+                        titikTerjauh = titik;
+                    }
+                }
+            }
+
+            if (titikTerjauh != null)
+            {
+                transform.position = titikTerjauh.position;
+            }
+            else
+            {
+                // Fallback terakhir jika semua titik null/invalid
+                int randomIndex = Random.Range(0, daftarTitik.Length);
+                if (daftarTitik[randomIndex] != null)
+                    transform.position = daftarTitik[randomIndex].position;
+            }
         }
     }
 }

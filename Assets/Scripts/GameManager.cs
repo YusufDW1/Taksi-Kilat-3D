@@ -69,6 +69,10 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        // Pengoptimalan performa untuk Android
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+
         // Pastikan panel struk/GameOver hilang saat mulai
         if (panelStruk != null) panelStruk.SetActive(false); 
         if (panelGameOver != null) panelGameOver.SetActive(false); 

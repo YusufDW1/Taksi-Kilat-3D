@@ -19,8 +19,8 @@ public class TaxiController : MonoBehaviour
     public Transform centerOfMass; 
 
     [Header("Pengaturan Performa")]
-    public float motorForce = 1600f; // Disesuaikan agar tidak terlalu liar/cepat (lama: 2200f)
-    public float reverseForce = 1300f; // Disesuaikan agar mundur pas (lama: 2000f)
+    public float motorForce = 1200f; // Disesuaikan sedikit lagi agar tidak terlalu kencang (lama: 1600f)
+    public float reverseForce = 900f; // Disesuaikan mundur agar lebih stabil (lama: 1300f)
     public float breakForce = 3000f;
     public float decelerationForce = 400f; 
     public float maxSteerAngle = 30f;
@@ -64,6 +64,7 @@ public class TaxiController : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
 
         // Menyuruh Rigidbody menggunakan titik berat yang baru
         if (centerOfMass != null)
@@ -80,23 +81,10 @@ public class TaxiController : MonoBehaviour
         // Pastikan suara mesin diatur agar me-looping dan langsung menyala sejak awal
         if (mesinAudioSource != null)
         {
-            engineMaxVolume = mesinAudioSource.volume; // Simpan volume bawaan awal
             mesinAudioSource.loop = true;
-
-            // Jika batas akhir loop belum ditentukan, potong 0.15 detik sebelum durasi total habis
-            if (mesinAudioSource.clip != null && loopEndSeconds <= 0f)
-            {
-                loopEndSeconds = mesinAudioSource.clip.length - 0.15f;
-            }
-
             if (!mesinAudioSource.isPlaying)
             {
                 mesinAudioSource.Play();
-                // Set waktu awal langsung ke loopStartSeconds untuk melewati keheningan awal secara instan (sekali saja)
-                if (mesinAudioSource.clip != null)
-                {
-                    mesinAudioSource.time = Mathf.Min(loopStartSeconds, mesinAudioSource.clip.length - 0.1f);
-                }
             }
         }
     }
@@ -128,14 +116,13 @@ public class TaxiController : MonoBehaviour
         GetInput();
         HandleEngineSound(); // Jalankan kontrol suara mesin setiap frame
         HandleDriftSound();  // Jalankan kontrol cek decit ban setiap frame
-        HandleEngineLoopRange(); // Kontrol area looping kustom suara mesin
+        UpdateWheels();      // Update visual ban di render frame agar mulus
     }
 
     private void FixedUpdate()
     {
         HandleMotor();
         HandleSteering();
-        UpdateWheels();
         AddDownforce(); // Berikan downforce agar mobil stabil menempel di jalan
     }
 
@@ -371,42 +358,6 @@ public class TaxiController : MonoBehaviour
         }
     }
 
-    // ==================================================
-    // FUNGSI BARU: MENGONTROL AREA LOOP KUSTOM MESIN
-    // ==================================================
-    private void HandleEngineLoopRange()
-    {
-        if (mesinAudioSource == null || mesinAudioSource.clip == null || !mesinAudioSource.isPlaying) return;
- 
-        float currentTime = mesinAudioSource.time;
-        float fadeDuration = 0.06f; // Durasi fade-out & fade-in (60ms) untuk meredam bunyi pop
- 
-        // 1. Logika Lompat/Loop Kustom (Hanya reset jika menyentuh batas akhir)
-        if (currentTime >= loopEndSeconds)
-        {
-            mesinAudioSource.time = loopStartSeconds;
-            currentTime = loopStartSeconds; // Sinkronkan nilai waktu lokal
-        }
- 
-        // 2. Logika Micro-Fade untuk Mencegah Bunyi Cetuk/Dentuman
-        float targetVolume = engineMaxVolume;
- 
-        if (currentTime >= loopEndSeconds - fadeDuration)
-        {
-            // Fading out saat mendekati akhir loop
-            float t = (loopEndSeconds - currentTime) / fadeDuration;
-            targetVolume = Mathf.Lerp(0f, engineMaxVolume, t);
-        }
-        else if (currentTime <= loopStartSeconds + fadeDuration)
-        {
-            // Fading in saat baru melompat ke awal loop
-            float t = (currentTime - loopStartSeconds) / fadeDuration;
-            targetVolume = Mathf.Lerp(0f, engineMaxVolume, t);
-        }
- 
-        // Terapkan volume hasil fade kustom
-        mesinAudioSource.volume = targetVolume;
-    }
 
     private void SetWheelGrip(WheelCollider wc, float stiffness)
     {
