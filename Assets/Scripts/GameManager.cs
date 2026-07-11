@@ -142,8 +142,9 @@ public class GameManager : MonoBehaviour
         }
 
         // Cek apakah ini Level 1 (asumsi nama scene kamu adalah "Level_1")
-        // Ini biar tutorial gak muncul lagi di Level 2 atau Level 3
-        if (SceneManager.GetActiveScene().name == "Level_1" && !tutorialSelesai)
+        // Menggunakan PlayerPrefs agar tutorial tidak muncul lagi selamanya setelah diselesaikan
+        bool isTutorialDone = PlayerPrefs.GetInt("TutorialSelesai", 0) == 1;
+        if (SceneManager.GetActiveScene().name == "Level_1" && !isTutorialDone)
         {
             gameAktif = false;
             Time.timeScale = 0f; // Bekukan waktu game (taksi & timer tidak jalan)
@@ -363,7 +364,6 @@ public class GameManager : MonoBehaviour
     {
         PutarSuaraKlik(); // <-- Pemicu suara klik tombol main menu
         Time.timeScale = 1f; // PENTING: Wajib dinormalkan agar scene MainMenu tidak ikut membeku/macet!
-        tutorialSelesai = false; // Reset tutorial agar muncul lagi jika masuk dari Main Menu
         SceneManager.LoadScene("MainMenu"); // Sesuaikan dengan nama Scene Menu Utamamu
     }
 
@@ -477,7 +477,10 @@ public class GameManager : MonoBehaviour
     {
         gameAktif = true;
         Time.timeScale = 1f; // Jalankan waktu normal (game dimulai!)
-        tutorialSelesai = true; // Tandai bahwa tutorial sudah diselesaikan
+        
+        // Simpan status bahwa tutorial sudah diselesaikan secara permanen
+        PlayerPrefs.SetInt("TutorialSelesai", 1);
+        PlayerPrefs.Save();
 
         // Sembunyikan panel tutorial
         if (panelTutorial != null)
