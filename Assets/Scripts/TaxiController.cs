@@ -19,7 +19,8 @@ public class TaxiController : MonoBehaviour
     public Transform centerOfMass; 
 
     [Header("Pengaturan Performa")]
-    public float motorForce = 1500f;
+    public float motorForce = 2200f; // Default lama 1500f (Akselerasi lebih bertenaga)
+    public float reverseForce = 2000f; // Default baru khusus mundur agar lebih kencang
     public float breakForce = 3000f;
     public float decelerationForce = 400f; 
     public float maxSteerAngle = 30f;
@@ -29,6 +30,7 @@ public class TaxiController : MonoBehaviour
     
     [Header("Downforce & Stabilitas")]
     public float downforceValue = 100f; // Gaya rekat ke jalan agar mobil tidak melayang saat kencang
+    public float gripStiffness = 1.8f; // Kekuatan cengkraman ban (Unity default 1.0f). Makin tinggi makin tidak licin/pleset saat belok tajam
 
     [Header("Kontrol Mobile Android")]
     public MobileButton tombolGas;
@@ -68,6 +70,12 @@ public class TaxiController : MonoBehaviour
         {
             rb.centerOfMass = centerOfMass.localPosition;
         }
+
+        // Terapkan cengkraman ban (grip stiffness) agar tidak mudah pleset saat belok tajam
+        SetWheelGrip(frontLeftCollider, gripStiffness);
+        SetWheelGrip(frontRightCollider, gripStiffness);
+        SetWheelGrip(rearLeftCollider, gripStiffness);
+        SetWheelGrip(rearRightCollider, gripStiffness);
 
         // Pastikan suara mesin diatur agar me-looping dan langsung menyala sejak awal
         if (mesinAudioSource != null)
@@ -275,7 +283,7 @@ public class TaxiController : MonoBehaviour
                 }
                 else // Mobil diam atau sedang mundur -> GAS MUNDUR
                 {
-                    motorTorqueToApply = verticalInput * motorForce;
+                    motorTorqueToApply = verticalInput * reverseForce;
                 }
             }
             else // Gas dilepas -> Engine braking (Deselerasi lambat)
@@ -285,9 +293,11 @@ public class TaxiController : MonoBehaviour
             }
         }
 
-        // Terapkan torsi motor ke roda depan (FWD)
+        // Terapkan torsi motor ke semua roda (AWD) agar akselerasi & mundur jauh lebih bertenaga & stabil
         frontLeftCollider.motorTorque = motorTorqueToApply;
         frontRightCollider.motorTorque = motorTorqueToApply;
+        rearLeftCollider.motorTorque = motorTorqueToApply;
+        rearRightCollider.motorTorque = motorTorqueToApply;
 
         // Terapkan rem yang disesuaikan
         ApplyBraking(frontBrake, rearBrake);
@@ -395,5 +405,20 @@ public class TaxiController : MonoBehaviour
  
         // Terapkan volume hasil fade kustom
         mesinAudioSource.volume = targetVolume;
+    }
+
+    private void SetWheelGrip(WheelCollider wc, float stiffness)
+    {
+        if (wc == null) return;
+        
+        // Atur gaya gesek samping (sideways friction) agar mobil mencengkram jalan & tidak licin saat belok
+        WheelFrictionCurve sideways = wc.sidewaysFriction;
+        sideways.stiffness = stiffness;
+        wc.sidewaysFriction = sideways;
+
+        // Sedikit tingkatkan gaya gesek depan (forward friction) agar akselerasi gas/rem lebih menggigit
+        WheelFrictionCurve forward = wc.forwardFriction;
+        forward.stiffness = stiffness * 0.9f;
+        wc.forwardFriction = forward;
     }
 }
