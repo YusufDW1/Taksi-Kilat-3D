@@ -78,6 +78,14 @@ public class GameManager : MonoBehaviour
         if (panelGameOver != null) panelGameOver.SetActive(false); 
         if (tombolPauseHUD != null) tombolPauseHUD.SetActive(true); // Pastikan tombol pause aktif saat mulai
         if (mobileButton != null) mobileButton.SetActive(true); // Pastikan tombol android aktif saat mulai
+
+        // --- OPTIMASI: Static Batching Runtime ---
+        // Menggabungkan ribuan mesh lingkungan pada saat loading level tanpa membuat ukuran APK membengkak
+        GameObject mapUtama = GameObject.Find("Map_Utama");
+        if (mapUtama != null)
+        {
+            StaticBatchingUtility.Combine(mapUtama);
+        }
         
         UpdateUITarget(); 
         UpdateUITimer(); // Tampilkan timer awal di UI (agar membeku di awal)
