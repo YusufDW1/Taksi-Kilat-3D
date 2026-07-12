@@ -73,6 +73,17 @@ public class GameManager : MonoBehaviour
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
 
+        // --- OPTIMASI EKSTRIM MOBILE ---
+        // 1. Turunkan resolusi internal ke 720p (Menyelamatkan GPU HP modern yang layarnya terlalu besar)
+        float aspect = (float)Screen.width / (float)Screen.height;
+        int targetHeight = 720;
+        int targetWidth = Mathf.RoundToInt(targetHeight * aspect);
+        Screen.SetResolution(targetWidth, targetHeight, true);
+
+        // 2. Batasi jarak bayangan maksimum (Shadows are the #1 cause of GPU lag)
+        QualitySettings.shadowDistance = 45f;
+        QualitySettings.shadowCascades = 1;
+        
         // Pastikan panel struk/GameOver hilang saat mulai
         if (panelStruk != null) panelStruk.SetActive(false); 
         if (panelGameOver != null) panelGameOver.SetActive(false); 
